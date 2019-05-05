@@ -189,3 +189,12 @@ CREATE TEMPORARY TABLE temp_rent_table
 			ON C.film_id = B.film_id
 	GROUP BY title ORDER BY count(A.rental_id) DESC;
 SELECT * FROM temp_rent_table;
+
+-- 7f. Write a query to display how much business, in dollars, each store brought in.
+SELECT A.store_id, B.customer_id, sum(C.amount)
+    FROM sakila.store as A
+		INNER JOIN sakila.customer as B
+			ON B.store_id = A.store_id
+		INNER JOIN sakila.payment as C
+			ON C.customer_id = B.customer_id
+	GROUP BY store_id ORDER BY sum(C.amount) DESC;
