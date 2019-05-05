@@ -191,10 +191,56 @@ CREATE TEMPORARY TABLE temp_rent_table
 SELECT * FROM temp_rent_table;
 
 -- 7f. Write a query to display how much business, in dollars, each store brought in.
-SELECT A.store_id, B.customer_id, sum(C.amount)
-    FROM sakila.store as A
-		INNER JOIN sakila.customer as B
-			ON B.store_id = A.store_id
-		INNER JOIN sakila.payment as C
-			ON C.customer_id = B.customer_id
-	GROUP BY store_id ORDER BY sum(C.amount) DESC;
+DROP TEMPORARY TABLE IF EXISTS temp_income_stores;
+CREATE TEMPORARY TABLE temp_income_stores
+	SELECT A.store_id, B.customer_id, sum(C.amount)
+		FROM sakila.store as A
+			INNER JOIN sakila.customer as B
+				ON B.store_id = A.store_id
+			INNER JOIN sakila.payment as C
+				ON C.customer_id = B.customer_id
+	GROUP BY store_id ORDER BY (sum(C.amount)) DESC;
+-- ALTER TABLE sakila.temp_income_stores DROP COLUMN customer_id;
+-- ALTER TABLE sakila.temp_income_stores CHANGE COLUMN "sum(C.amount)" "Income" ;
+-- SELECT * -- store_id, CONCAT("$", FORMAT(sum(sum(C.amount), 2)))
+-- FROM temp_income_stores;
+-- Write a query to display for each store its store ID, city, and country.
+SELECT A.store_id, C. city, D.country
+FROM sakila.store as A
+	JOIN sakila.address as B
+		ON B.address_id = A.address_id
+	JOIN sakila.city as C
+		ON C.city_id = B.city_id
+	JOIN sakila.country as D
+		ON D.country_id = C.country_id;
+
+-- List the top five genres in gross revenue in descending order. (Hint: you may need to use the following tables: 
+-- category, film_category, inventory, payment, and rental.)
+DROP TEMPORARY TABLE IF EXISTS temp_genre_income;
+CREATE TEMPORARY TABLE temp_genre_income
+SELECT A.film_id, A.title, B.category_id, C.name, D.inventory_id, E.rental_id, F.amount
+FROM sakila.film AS A
+	JOIN sakila.film_category AS B
+		ON B.film_id = A.film_id
+	JOIN sakila.category AS C
+		ON C.category_id = B.category_id
+	JOIN sakila.inventory AS D
+		ON D.film_id = A.film_id
+	JOIN sakila.rental AS E
+		ON E.inventory_id = D.inventory_id
+	JOIN sakila.payment AS F
+		ON F.rental_id = E.rental_id;
+SELECT name, sum(amount) FROM temp_genre_income
+GROUP BY name ORDER BY sum(amount) DESC;
+
+-- 8a. In your new role as an executive, you would like to have an easy way of viewing the Top five genres by gross revenue. 
+-- Use the solution from the problem above to create a view. If you haven't solved 7h, you can substitute another query to create a view.
+SELECT name, sum(amount) FROM temp_genre_income
+GROUP BY name ORDER BY sum(amount) DESC LIMIT 5;
+
+-- 8b. How would you display the view that you created in 8a?
+-- **RESOLVED IN THE PREVIOUS BULLET**
+
+-- 8c. You find that you no longer need the view top_five_genres. Write a query to delete it.
+SELECT name, sum(amount) FROM temp_genre_income
+GROUP BY name ORDER BY sum(amount) DESC;
